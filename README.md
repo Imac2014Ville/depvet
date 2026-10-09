@@ -4,6 +4,8 @@ Pre-install dependency vetting for AI agents. Check an **npm** or **PyPI** packa
 
 **Live:** https://depvet.imac2014ville.workers.dev · [OpenAPI](https://depvet.imac2014ville.workers.dev/openapi.json)
 
+Landing page: https://depvet.imac2014ville.workers.dev/ · Payments settle via PayAI with automatic failover.
+
 | Endpoint | Price | What it does |
 |---|---|---|
 | `POST /report` `{ "ecosystem": "npm", "name": "lodash", "version": "4.17.20" }` | $0.02 | Full report: verdict `OK` / `REVIEW` / `AVOID` with reasons, known vulnerabilities (OSV.dev) with severity and fixed versions, malware advisories, SPDX license + risk class, dependency counts, OpenSSF Scorecard, maintenance signals (last publish, release cadence, deprecated, maintainers), typosquat hint. |

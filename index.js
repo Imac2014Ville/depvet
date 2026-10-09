@@ -2,19 +2,19 @@
 import { Hono } from "hono";
 import { paymentMiddleware, x402ResourceServer } from "@x402/hono";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
-import { HTTPFacilitatorClient } from "@x402/core/server";
+import { FailoverFacilitatorClient } from "./facilitator.js";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { typosquat } from "./popular.js";
+import { landingHtml, LLMS, ROBOTS, SITEMAP } from "./landing.js";
 import { report, check, batch, batchCost, validatePkg, NotFound } from "./vet.js";
 
 const PAY_TO = "0xbBB1338E3990a9Ab5DB36546a28cEe06cCB03D05";
 const NETWORK = "eip155:8453";
-const FACILITATOR = "https://facilitator.payai.network";
 const ORIGIN = "https://depvet.imac2014ville.workers.dev";
 const PRICE = "$0.02";
 
 const app = new Hono();
-const server = new x402ResourceServer(new HTTPFacilitatorClient({ url: FACILITATOR }))
+const server = new x402ResourceServer(new FailoverFacilitatorClient())
   .register(NETWORK, new ExactEvmScheme());
 server.registerExtension(bazaarResourceServerExtension);
 
@@ -140,7 +140,12 @@ const DOCS = {
   notes: "ecosystem is 'npm' or 'pypi'. Invalid input returns 400 and unknown packages return 404 before any payment is settled. GET with query params also works (batch: packages=a@1.0,b).",
   howToPay: "Call any endpoint; you get HTTP 402 with payment requirements. Use an x402 client (e.g. @x402/fetch, x402-axios, or an MCP x402 wallet) to sign and retry.",
 };
-app.get("/", c => c.json(DOCS));
+app.get("/", c => (c.req.header("accept") || "").includes("text/html")
+  ? c.html(landingHtml(), 200, { "cache-control": "public, max-age=300", vary: "Accept" }) : c.json(DOCS, 200, { vary: "Accept" }));
+app.get("/llms.txt", c => c.text(LLMS));
+app.get("/robots.txt", c => c.text(ROBOTS));
+app.get("/d32fa5f5b0aa09cc644601941586b1c1.txt", c => c.text("d32fa5f5b0aa09cc644601941586b1c1"));
+app.get("/sitemap.xml", c => c.body(SITEMAP, 200, { "content-type": "application/xml" }));
 app.get("/openapi.json", c => {
   const paths = {};
   for (const [k, r] of Object.entries(ROUTES)) {
